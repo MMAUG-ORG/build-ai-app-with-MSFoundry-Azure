@@ -1,0 +1,59 @@
+name: deploy-azd
+
+# End-to-end deployment via Azure Developer CLI using OIDC federated credentials
+# (no client secret stored). Triggered manually so it does not run on every push.
+#
+# Required GitHub variables (Settings → Secrets and variables → Actions → Variables):
+#   AZURE_CLIENT_ID        - app registration / managed identity used for OIDC
+#   AZURE_TENANT_ID
+#   AZURE_SUBSCRIPTION_ID
+#   AZURE_ENV_NAME         - azd environment name, e.g. "mmaug-foundry-prod"
+#   AZURE_LOCATION         - e.g. "westeurope"
+#
+# Required GitHub secret:
+#   POSTGRES_ADMIN_PASSWORD - strong password for the Postgres Flexible admin
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "azd command to run"
+        type: choice
+        default: up
+        options: [up, deploy, provision]
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read
+
+jobs:
+  azd:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      POSTGRES_ADMIN_PASSWORD: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Log in to Azure (OIDC, federated credential)
+        run: |
+          azd auth login \
+            --client-id "$AZURE_CLIENT_ID" \
+            --federated-credential-provider github \
+            --tenant-id "$AZURE_TENANT_ID"
+
+      - name: Run azd ${{ inputs.action }}
+        run: |
+          azd env new "$AZURE_ENV_NAME" \
+            --location "$AZURE_LOCATION" \
+            --subscription "$AZURE_SUBSCRIPTION_ID" \
+            --no-prompt 2>/dev/null || azd env select "$AZURE_ENV_NAME"
+          azd env set POSTGRES_ADMIN_PASSWORD "$POSTGRES_ADMIN_PASSWORD"
+          azd ${{ inputs.action }} --no-prompt
