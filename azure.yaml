@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: mmaug-foundry-support-app
+metadata:
+  template: mmaug-foundry-support-app@1.0.0
+services:
+  api:
+    project: ./backend
+    language: python
+    host: appservice
+  web:
+    project: ./frontend
+    language: js
+    host: appservice
+    dist: dist
+hooks:
+  postprovision:
+    shell: sh
+    run: |
+      python -m pip install --quiet azure-ai-projects azure-ai-agents azure-identity
+      python ./scripts/create_agent.py
+    interactive: false
+    continueOnError: false

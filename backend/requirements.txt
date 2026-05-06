@@ -1,0 +1,12 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.7.0
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+azure-identity==1.19.0
+azure-storage-blob==12.24.0
+azure-ai-projects==1.0.0b6
+azure-ai-agents==1.0.0
+python-multipart==0.0.20
+httpx==0.28.1

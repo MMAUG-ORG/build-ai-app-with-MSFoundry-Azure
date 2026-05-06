@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.local
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Azure
+.azure/
+*.tfstate*
+
+# Editor
+.DS_Store
+.vscode/
+.idea/
