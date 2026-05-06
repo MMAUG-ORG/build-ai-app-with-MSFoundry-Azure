@@ -23,12 +23,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .db import Customer, Ticket
 
-_settings = get_settings()
-_credential = DefaultAzureCredential()
-_project = AIProjectClient(
-    endpoint=_settings.foundry_project_endpoint,
-    credential=_credential,
-)
+# The Foundry / Azure clients are constructed lazily so that importing this
+# module (e.g. in CI smoke tests, unit tests, or `python -c "from app.main
+# import app"`) never requires real Foundry credentials or environment vars.
+_credential: DefaultAzureCredential | None = None
+_project: AIProjectClient | None = None
+
+
+def _get_credential() -> DefaultAzureCredential:
+    global _credential
+    if _credential is None:
+        _credential = DefaultAzureCredential()
+    return _credential
+
+
+def _get_project() -> AIProjectClient:
+    global _project
+    if _project is None:
+        _project = AIProjectClient(
+            endpoint=get_settings().foundry_project_endpoint,
+            credential=_get_credential(),
+        )
+    return _project
 
 
 # ---------- Tool implementations (executed locally) ----------
@@ -125,16 +141,22 @@ async def _dispatch_tool(session: AsyncSession, name: str, args: dict[str, Any])
 
 class AgentService:
     def __init__(self) -> None:
-        self.agent_id = _settings.foundry_agent_id
+        self._agent_id: str | None = None
+
+    @property
+    def agent_id(self) -> str:
+        if self._agent_id is None:
+            self._agent_id = get_settings().foundry_agent_id
+        return self._agent_id
 
     async def ensure_thread(self, thread_id: str | None) -> str:
         if thread_id:
             return thread_id
-        thread = await _project.agents.threads.create()
+        thread = await _get_project().agents.threads.create()
         return thread.id
 
     async def ask(self, session: AsyncSession, thread_id: str, user_message: str) -> str:
-        agents = _project.agents
+        agents = _get_project().agents
         await agents.messages.create(thread_id=thread_id, role="user", content=user_message)
         run = await agents.runs.create(thread_id=thread_id, agent_id=self.agent_id)
 
