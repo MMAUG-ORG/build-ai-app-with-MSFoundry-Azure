@@ -11,7 +11,6 @@ import json
 from typing import Any
 
 from azure.ai.agents.models import (
-    FunctionTool,
     RequiredFunctionToolCall,
     SubmitToolOutputsAction,
     ToolOutput,
