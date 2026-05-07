@@ -19,8 +19,10 @@ param principalId string = ''
 param postgresAdminPassword string
 
 // Fixed naming convention for the live MMAUG meetup deployment.
-// All resources land as "<service>-mmaug-meetup" (storage strips hyphens).
-var suffix        = 'mmaug-meetup'
+// All resources land as "<service>-mmaug-meetup-0217" (storage strips hyphens).
+// The numeric tail keeps globally-namespaced resources (storage, app service,
+// postgres) collision-free if the names are reused on a different day.
+var suffix        = 'mmaug-meetup-0217'
 var storageSuffix = replace(suffix, '-', '')
 var tags          = { 'azd-env-name': environmentName, project: 'mmaug-foundry-support', event: 'mmaug-meetup' }
 
