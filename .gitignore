@@ -9,6 +9,11 @@ __pycache__/
 node_modules/
 dist/
 .vite/
+package-lock.json
+*.tsbuildinfo
+# Vite generated typings + per-deploy env
+frontend/src/vite-env.d.ts
+.env.production
 
 # Azure
 .azure/
