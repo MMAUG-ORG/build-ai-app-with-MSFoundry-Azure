@@ -9,7 +9,7 @@ param modelName string
 param modelVersion string
 param skuCapacity int = 30
 
-resource account 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   name: accountName
   location: location
   tags: tags

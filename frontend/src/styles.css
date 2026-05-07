@@ -39,7 +39,7 @@ footer { margin-top: 24px; text-align: center; color: #6b7280; font-size: 0.85re
 .tickets h2 { margin-top: 0; font-size: 1.1rem; }
 .tickets ul { list-style: none; padding: 0; margin: 0; }
 .ticket {
-  display: grid; grid-template-columns: 50px 1fr auto;
+  display: grid; grid-template-columns: 50px 1fr auto auto;
   gap: 8px; align-items: center;
   padding: 8px; border-bottom: 1px solid #eef;
 }
@@ -49,4 +49,16 @@ footer { margin-top: 24px; text-align: center; color: #6b7280; font-size: 0.85re
 }
 .ticket__status--open { background: #dcfce7; color: #166534; }
 .ticket--high .ticket__id, .ticket--urgent .ticket__id { color: #b91c1c; font-weight: 700; }
+.ticket__attach {
+  font-size: 0.75rem; padding: 4px 10px; border-radius: 6px;
+  background: #eef2ff; color: #0b3a82; border: 1px solid #c7d2fe;
+  cursor: pointer; font-weight: 600;
+}
+.ticket__attach:hover:not([disabled]) { background: #e0e7ff; }
+.ticket__attach[disabled] { opacity: 0.6; cursor: wait; }
+.ticket__attach-msg {
+  grid-column: 1 / -1; font-size: 0.75rem; padding: 2px 4px; color: #6b7280;
+}
+.ticket__attach-msg--ok { color: #166534; }
+.ticket__attach-msg--error { color: #b91c1c; }
 .muted { color: #6b7280; }
