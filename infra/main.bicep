@@ -18,14 +18,17 @@ param principalId string = ''
 @description('Admin password for the Postgres flexible server.')
 param postgresAdminPassword string
 
-var prefix = toLower(uniqueString(subscription().id, environmentName, location))
-var tags   = { 'azd-env-name': environmentName, project: 'mmaug-foundry-support' }
+// Fixed naming convention for the live MMAUG meetup deployment.
+// All resources land as "<service>-mmaug-meetup" (storage strips hyphens).
+var suffix        = 'mmaug-meetup'
+var storageSuffix = replace(suffix, '-', '')
+var tags          = { 'azd-env-name': environmentName, project: 'mmaug-foundry-support', event: 'mmaug-meetup' }
 
 // ---------- Storage ----------
 module storage 'modules/storage.bicep' = {
   name: 'storage'
   params: {
-    name:     'st${prefix}'
+    name:     'st${storageSuffix}'
     location: location
     tags:     tags
   }
@@ -35,7 +38,7 @@ module storage 'modules/storage.bicep' = {
 module postgres 'modules/postgres.bicep' = {
   name: 'postgres'
   params: {
-    name:          'pg-${prefix}'
+    name:          'pg-${suffix}'
     location:      location
     tags:          tags
     adminUser:     'pgadmin'
@@ -48,7 +51,7 @@ module postgres 'modules/postgres.bicep' = {
 module foundry 'modules/foundry.bicep' = {
   name: 'foundry'
   params: {
-    accountName: 'aif-${prefix}'
+    accountName: 'aif-${suffix}'
     projectName: 'mmaug-support'
     location:    location
     tags:        tags
@@ -60,10 +63,10 @@ module foundry 'modules/foundry.bicep' = {
 
 // ---------- App Service Plan (shared by API + Web) ----------
 resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: 'plan-${prefix}'
+  name: 'plan-${suffix}'
   location: location
   tags: tags
-  sku: { name: 'B2', tier: 'Basic' }
+  sku: { name: 'B3', tier: 'Basic' }
   kind: 'linux'
   properties: { reserved: true }
 }
@@ -72,7 +75,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
 module api 'modules/appservice.bicep' = {
   name: 'api'
   params: {
-    name: 'app-api-${prefix}'
+    name: 'app-api-${suffix}'
     location: location
     tags: union(tags, { 'azd-service-name': 'api' })
     serverFarmId: plan.id
@@ -90,7 +93,7 @@ module api 'modules/appservice.bicep' = {
       { name: 'POSTGRES_SSLMODE',  value: 'require' }
       { name: 'STORAGE_ACCOUNT_NAME', value: storage.outputs.name }
       { name: 'STORAGE_CONTAINER',    value: 'attachments' }
-      { name: 'CORS_ORIGINS',         value: 'https://app-web-${prefix}.azurewebsites.net' }
+      { name: 'CORS_ORIGINS',         value: 'https://app-web-${suffix}.azurewebsites.net' }
     ]
   }
 }
@@ -99,7 +102,7 @@ module api 'modules/appservice.bicep' = {
 module web 'modules/appservice.bicep' = {
   name: 'web'
   params: {
-    name: 'app-web-${prefix}'
+    name: 'app-web-${suffix}'
     location: location
     tags: union(tags, { 'azd-service-name': 'web' })
     serverFarmId: plan.id
@@ -116,7 +119,7 @@ module web 'modules/appservice.bicep' = {
 // ---------- RBAC ----------
 // Storage Blob Data Contributor on the storage account → API managed identity
 resource storageRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, api.outputs.principalId, 'storage-blob-contrib')
+  name: guid(resourceGroup().id, 'api', 'storage-blob-contrib')
   scope: resourceGroup()
   properties: {
     principalId: api.outputs.principalId
@@ -130,7 +133,7 @@ resource storageRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 
 // Azure AI User on the Foundry account → API managed identity
 resource foundryRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, api.outputs.principalId, 'azure-ai-user')
+  name: guid(resourceGroup().id, 'api', 'azure-ai-user')
   scope: resourceGroup()
   properties: {
     principalId: api.outputs.principalId
