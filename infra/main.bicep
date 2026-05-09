@@ -82,10 +82,13 @@ module api 'modules/appservice.bicep' = {
     tags: union(tags, { 'azd-service-name': 'api' })
     serverFarmId: plan.id
     runtime: 'PYTHON|3.11'
-    startupCommand: 'gunicorn -w 2 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000 --timeout 120'
+    startupCommand: 'gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 --bind 0.0.0.0:8000 --timeout 600 --access-logfile - --error-logfile -'
     appSettings: [
       { name: 'SCM_DO_BUILD_DURING_DEPLOYMENT', value: 'true' }
+      { name: 'ENABLE_ORYX_BUILD',              value: 'true' }
       { name: 'WEBSITES_PORT',                  value: '8000' }
+      { name: 'WEBSITES_CONTAINER_START_TIME_LIMIT', value: '1800' }
+      { name: 'PYTHONUNBUFFERED', value: '1' }
       { name: 'FOUNDRY_PROJECT_ENDPOINT', value: foundry.outputs.projectEndpoint }
       { name: 'FOUNDRY_MODEL_DEPLOYMENT', value: foundry.outputs.modelDeploymentName }
       { name: 'POSTGRES_HOST',     value: postgres.outputs.fqdn }
