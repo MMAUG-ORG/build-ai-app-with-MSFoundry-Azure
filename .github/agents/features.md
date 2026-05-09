@@ -1,0 +1,1 @@
+Add the navigation menu to the customer support agent web page, allowing users to easily access different sections of the support resources.
