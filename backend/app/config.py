@@ -1,5 +1,7 @@
 """Application configuration."""
 from functools import lru_cache
+from urllib.parse import quote_plus
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,9 +30,10 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        pwd = f":{self.postgres_password}" if self.postgres_password else ""
+        user = quote_plus(self.postgres_user)
+        pwd = f":{quote_plus(self.postgres_password)}" if self.postgres_password else ""
         return (
-            f"postgresql+asyncpg://{self.postgres_user}{pwd}"
+            f"postgresql+asyncpg://{user}{pwd}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 

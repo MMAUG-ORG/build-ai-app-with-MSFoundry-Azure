@@ -82,7 +82,7 @@ module api 'modules/appservice.bicep' = {
     tags: union(tags, { 'azd-service-name': 'api' })
     serverFarmId: plan.id
     runtime: 'PYTHON|3.11'
-    startupCommand: 'bash startup.sh'
+    startupCommand: 'gunicorn -w 2 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000 --timeout 120'
     appSettings: [
       { name: 'SCM_DO_BUILD_DURING_DEPLOYMENT', value: 'true' }
       { name: 'WEBSITES_PORT',                  value: '8000' }
@@ -109,7 +109,7 @@ module web 'modules/appservice.bicep' = {
     tags: union(tags, { 'azd-service-name': 'web' })
     serverFarmId: plan.id
     runtime: 'NODE|20-lts'
-    startupCommand: 'npx --yes serve -s dist -l 8080'
+    startupCommand: 'npx --yes serve -s . -l 8080'
     appSettings: [
       { name: 'SCM_DO_BUILD_DURING_DEPLOYMENT', value: 'false' }
       { name: 'WEBSITES_PORT', value: '8080' }

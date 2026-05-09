@@ -13,7 +13,16 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from .config import get_settings
 
 settings = get_settings()
-engine = create_async_engine(settings.database_url, pool_pre_ping=True, future=True)
+_connect_args: dict = {}
+if settings.postgres_sslmode and settings.postgres_sslmode.lower() != "disable":
+    # asyncpg ignores libpq sslmode in URLs; pass ssl=True for Azure Postgres Flexible Server
+    _connect_args["ssl"] = True
+engine = create_async_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    future=True,
+    connect_args=_connect_args,
+)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
