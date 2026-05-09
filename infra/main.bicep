@@ -82,7 +82,7 @@ module api 'modules/appservice.bicep' = {
     tags: union(tags, { 'azd-service-name': 'api' })
     serverFarmId: plan.id
     runtime: 'PYTHON|3.11'
-    startupCommand: 'gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 --bind 0.0.0.0:8000 --timeout 600 --access-logfile - --error-logfile -'
+    startupCommand: 'bash -c "tar --use-compress-program=unzstd -xf /home/site/wwwroot/output.tar.zst -C /home/site/wwwroot && cd /home/site/wwwroot && exec ./antenv/bin/python -m gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 --bind 0.0.0.0:8000 --timeout 600 --access-logfile - --error-logfile -"'
     appSettings: [
       { name: 'SCM_DO_BUILD_DURING_DEPLOYMENT', value: 'true' }
       { name: 'ENABLE_ORYX_BUILD',              value: 'true' }
