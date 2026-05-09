@@ -134,14 +134,16 @@ def main() -> int:
 
     api_app = env.get("API_HOSTNAME", "").split(".")[0]
     rg = env.get("AZURE_RESOURCE_GROUP")
+    sub = env.get("AZURE_SUBSCRIPTION_ID")
     if api_app and rg:
-        subprocess.check_call(
-            [
-                "az", "webapp", "config", "appsettings", "set",
-                "-g", rg, "-n", api_app,
-                "--settings", f"FOUNDRY_AGENT_ID={agent.id}",
-            ]
-        )
+        cmd = [
+            "az", "webapp", "config", "appsettings", "set",
+            "-g", rg, "-n", api_app,
+            "--settings", f"FOUNDRY_AGENT_ID={agent.id}",
+        ]
+        if sub:
+            cmd.extend(["--subscription", sub])
+        subprocess.check_call(cmd)
         print(f"set FOUNDRY_AGENT_ID on {api_app}")
 
     return 0

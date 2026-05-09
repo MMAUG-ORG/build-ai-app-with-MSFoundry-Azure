@@ -1,0 +1,1 @@
+Investigate the azd deployment failure in the frontend and fix the issue. The error message indicates that the deployment failed due to a missing resource group. Ensure that the resource group is created before attempting to deploy the frontend application.
