@@ -108,7 +108,8 @@ jobs:
             az webapp create \
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
-              --name "$WEB_APP_NAME"
+              --name "$WEB_APP_NAME" \
+              --runtime "NODE:20-lts"
 
             az webapp config set \
               --resource-group "$RESOURCE_GROUP" \
