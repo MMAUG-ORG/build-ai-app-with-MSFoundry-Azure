@@ -106,7 +106,7 @@ jobs:
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
               --name "$API_APP_NAME" \
-              --runtime "PYTHON|3.11"
+              --runtime "PYTHON:3.11"
           fi
 
       - name: Verify backend app exists

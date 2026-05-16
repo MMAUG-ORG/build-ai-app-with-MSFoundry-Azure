@@ -75,7 +75,7 @@ jobs:
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
               --name "$API_APP_NAME" \
-              --runtime "PYTHON|3.11"
+              --runtime "PYTHON:3.11"
           fi
 
           if [ "${{ inputs.target }}" != "api" ] && ! az webapp show --resource-group "$RESOURCE_GROUP" --name "$WEB_APP_NAME" >/dev/null 2>&1; then
@@ -83,7 +83,7 @@ jobs:
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
               --name "$WEB_APP_NAME" \
-              --runtime "NODE|20-lts"
+              --runtime "node:20LTS"
           fi
 
       - name: Verify target web apps exist
