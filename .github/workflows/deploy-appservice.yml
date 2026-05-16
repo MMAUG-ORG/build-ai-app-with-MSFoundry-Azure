@@ -23,6 +23,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_APP_SERVICE_PLAN: ${{ vars.AZURE_APP_SERVICE_PLAN }}
       AZURE_API_APP_NAME: ${{ vars.AZURE_API_APP_NAME }}
       AZURE_WEB_APP_NAME: ${{ vars.AZURE_WEB_APP_NAME }}
       API_HOSTNAME: ${{ vars.API_HOSTNAME }}
@@ -39,11 +40,13 @@ jobs:
       - name: Resolve deployment settings
         run: |
           RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-mmaug-agent-service}"
+          APP_SERVICE_PLAN="${AZURE_APP_SERVICE_PLAN:-plan-mmaug-meetup-0217}"
           API_APP_NAME="${AZURE_API_APP_NAME:-app-api-mmaug-meetup-0217}"
           WEB_APP_NAME="${AZURE_WEB_APP_NAME:-app-web-mmaug-meetup-0217}"
           API_BASE_HOST="${API_HOSTNAME:-${API_APP_NAME}.azurewebsites.net}"
 
           echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> "$GITHUB_ENV"
+          echo "APP_SERVICE_PLAN=$APP_SERVICE_PLAN" >> "$GITHUB_ENV"
           echo "API_APP_NAME=$API_APP_NAME" >> "$GITHUB_ENV"
           echo "WEB_APP_NAME=$WEB_APP_NAME" >> "$GITHUB_ENV"
           echo "API_BASE_HOST=$API_BASE_HOST" >> "$GITHUB_ENV"
@@ -54,6 +57,34 @@ jobs:
             --name "$RESOURCE_GROUP" \
             --location "${AZURE_LOCATION:-swedencentral}" \
             --tags project=mmaug-foundry-support event=mmaug-meetup
+
+      - name: Ensure App Service plan exists
+        run: |
+          if ! az appservice plan show --resource-group "$RESOURCE_GROUP" --name "$APP_SERVICE_PLAN" >/dev/null 2>&1; then
+            az appservice plan create \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$APP_SERVICE_PLAN" \
+              --is-linux \
+              --sku B3
+          fi
+
+      - name: Ensure target web apps exist
+        run: |
+          if [ "${{ inputs.target }}" != "web" ] && ! az webapp show --resource-group "$RESOURCE_GROUP" --name "$API_APP_NAME" >/dev/null 2>&1; then
+            az webapp create \
+              --resource-group "$RESOURCE_GROUP" \
+              --plan "$APP_SERVICE_PLAN" \
+              --name "$API_APP_NAME" \
+              --runtime "PYTHON|3.11"
+          fi
+
+          if [ "${{ inputs.target }}" != "api" ] && ! az webapp show --resource-group "$RESOURCE_GROUP" --name "$WEB_APP_NAME" >/dev/null 2>&1; then
+            az webapp create \
+              --resource-group "$RESOURCE_GROUP" \
+              --plan "$APP_SERVICE_PLAN" \
+              --name "$WEB_APP_NAME" \
+              --runtime "NODE|20-lts"
+          fi
 
       - name: Verify target web apps exist
         run: |
