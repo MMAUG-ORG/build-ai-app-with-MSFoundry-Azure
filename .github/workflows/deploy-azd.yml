@@ -73,7 +73,7 @@ jobs:
           azd env set POSTGRES_ADMIN_PASSWORD "$POSTGRES_ADMIN_PASSWORD"
 
           if [ "${{ inputs.action }}" = "deploy" ]; then
-            RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-mmaug-agent-service}"
+            RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-rg-mmaug-agent}"
             API_HOST="${API_HOSTNAME:-app-api-mmaug-meetup-0217.azurewebsites.net}"
             WEB_HOST="${WEB_HOSTNAME:-app-web-mmaug-meetup-0217.azurewebsites.net}"
 
