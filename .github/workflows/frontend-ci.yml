@@ -109,12 +109,12 @@ jobs:
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
               --name "$WEB_APP_NAME" \
-              --runtime "NODE:20-lts"
+              --runtime "NODE:24-lts"
 
             az webapp config set \
               --resource-group "$RESOURCE_GROUP" \
               --name "$WEB_APP_NAME" \
-              --linux-fx-version "NODE|20-lts"
+              --linux-fx-version "NODE|24-lts"
           fi
 
       - name: Verify frontend app exists
@@ -142,6 +142,14 @@ jobs:
 
       - name: Deploy frontend
         run: |
+          az webapp config appsettings set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEB_APP_NAME" \
+            --settings \
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+              WEBSITES_PORT=8080 \
+              WEBSITE_NODE_DEFAULT_VERSION="~24"
+
           az webapp deployment source config-zip \
             --resource-group "$RESOURCE_GROUP" \
             --name "$WEB_APP_NAME" \
