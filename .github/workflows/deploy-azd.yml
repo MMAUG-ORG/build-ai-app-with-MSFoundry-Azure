@@ -57,5 +57,8 @@ jobs:
             --location "$AZURE_LOCATION" \
             --subscription "$AZURE_SUBSCRIPTION_ID" \
             --no-prompt 2>/dev/null || azd env select "$AZURE_ENV_NAME"
+          azd env set AZURE_LOCATION "$AZURE_LOCATION"
+          azd env set AZURE_SUBSCRIPTION_ID "$AZURE_SUBSCRIPTION_ID"
+          azd env set AZURE_PRINCIPAL_ID "$AZURE_PRINCIPAL_ID"
           azd env set POSTGRES_ADMIN_PASSWORD "$POSTGRES_ADMIN_PASSWORD"
           azd ${{ inputs.action }} --no-prompt

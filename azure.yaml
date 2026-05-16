@@ -16,6 +16,8 @@ services:
       prepackage:
         shell: sh
         run: |
+          eval "$(azd env get-values)"
+          export VITE_API_BASE="https://${API_HOSTNAME}"
           npm ci
           npm run build
         interactive: false
