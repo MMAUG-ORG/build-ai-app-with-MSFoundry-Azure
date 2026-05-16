@@ -37,6 +37,9 @@ jobs:
       AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       AZURE_PRINCIPAL_ID: ${{ vars.AZURE_PRINCIPAL_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      API_HOSTNAME: ${{ vars.API_HOSTNAME }}
+      WEB_HOSTNAME: ${{ vars.WEB_HOSTNAME }}
       POSTGRES_ADMIN_PASSWORD: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +64,27 @@ jobs:
           azd env set AZURE_SUBSCRIPTION_ID "$AZURE_SUBSCRIPTION_ID"
           azd env set AZURE_PRINCIPAL_ID "$AZURE_PRINCIPAL_ID"
           azd env set POSTGRES_ADMIN_PASSWORD "$POSTGRES_ADMIN_PASSWORD"
+
+          if [ "${{ inputs.action }}" = "deploy" ]; then
+            RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-mmaug-agent-service}"
+            API_HOST="${API_HOSTNAME:-app-api-mmaug-meetup-0217.azurewebsites.net}"
+            WEB_HOST="${WEB_HOSTNAME:-app-web-mmaug-meetup-0217.azurewebsites.net}"
+
+            azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP"
+            azd env set API_HOSTNAME "$API_HOST"
+            azd env set WEB_HOSTNAME "$WEB_HOST"
+
+            az webapp update \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "${API_HOST%%.*}" \
+              --set tags.azd-service-name=api tags.azd-env-name="$AZURE_ENV_NAME"
+
+            az webapp update \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "${WEB_HOST%%.*}" \
+              --set tags.azd-service-name=web tags.azd-env-name="$AZURE_ENV_NAME"
+          fi
+
           azd ${{ inputs.action }} --no-prompt
 
           if [ "${{ inputs.action }}" = "deploy" ]; then
