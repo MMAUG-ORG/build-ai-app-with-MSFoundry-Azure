@@ -45,6 +45,7 @@ jobs:
         env:
           FOUNDRY_PROJECT_ENDPOINT: https://example.invalid/api/projects/x
           POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
           POSTGRES_USER: postgres
           STORAGE_ACCOUNT_NAME: ci
         run: python -c "from app.main import app; print('imports ok:', app.title)"
