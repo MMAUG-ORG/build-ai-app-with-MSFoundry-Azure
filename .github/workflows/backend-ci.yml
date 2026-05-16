@@ -62,6 +62,20 @@ jobs:
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AZURE_APP_SERVICE_PLAN: ${{ vars.AZURE_APP_SERVICE_PLAN }}
       AZURE_API_APP_NAME: ${{ vars.AZURE_API_APP_NAME }}
+      AZURE_WEB_APP_NAME: ${{ vars.AZURE_WEB_APP_NAME }}
+      FOUNDRY_PROJECT_ENDPOINT: ${{ vars.FOUNDRY_PROJECT_ENDPOINT }}
+      FOUNDRY_AGENT_ID: ${{ vars.FOUNDRY_AGENT_ID }}
+      FOUNDRY_MODEL_DEPLOYMENT: ${{ vars.FOUNDRY_MODEL_DEPLOYMENT }}
+      POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
+      POSTGRES_FQDN: ${{ vars.POSTGRES_FQDN }}
+      POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+      POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+      POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+      POSTGRES_ADMIN_USER: ${{ vars.POSTGRES_ADMIN_USER }}
+      STORAGE_ACCOUNT_NAME: ${{ vars.STORAGE_ACCOUNT_NAME }}
+      STORAGE_CONTAINER: ${{ vars.STORAGE_CONTAINER }}
+      CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -129,6 +143,14 @@ jobs:
 
       - name: Configure backend startup
         run: |
+          RESOLVED_POSTGRES_HOST="${POSTGRES_HOST:-$POSTGRES_FQDN}"
+          RESOLVED_POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+          RESOLVED_POSTGRES_DB="${POSTGRES_DB:-support}"
+          RESOLVED_POSTGRES_USER="${POSTGRES_USER:-$POSTGRES_ADMIN_USER}"
+          RESOLVED_STORAGE_CONTAINER="${STORAGE_CONTAINER:-attachments}"
+          RESOLVED_CORS_ORIGINS="${CORS_ORIGINS:-https://${AZURE_WEB_APP_NAME:-app-web-mmaug-meetup-0217}.azurewebsites.net}"
+          RESOLVED_MODEL_DEPLOYMENT="${FOUNDRY_MODEL_DEPLOYMENT:-gpt-4o-mini}"
+
           az webapp config set \
             --resource-group "$RESOURCE_GROUP" \
             --name "$API_APP_NAME" \
@@ -142,7 +164,19 @@ jobs:
               ENABLE_ORYX_BUILD=true \
               WEBSITES_PORT=8000 \
               WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
-              PYTHONUNBUFFERED=1
+              PYTHONUNBUFFERED=1 \
+              FOUNDRY_PROJECT_ENDPOINT="$FOUNDRY_PROJECT_ENDPOINT" \
+              FOUNDRY_AGENT_ID="$FOUNDRY_AGENT_ID" \
+              FOUNDRY_MODEL_DEPLOYMENT="$RESOLVED_MODEL_DEPLOYMENT" \
+              POSTGRES_HOST="$RESOLVED_POSTGRES_HOST" \
+              POSTGRES_PORT="$RESOLVED_POSTGRES_PORT" \
+              POSTGRES_DB="$RESOLVED_POSTGRES_DB" \
+              POSTGRES_USER="$RESOLVED_POSTGRES_USER" \
+              POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+              POSTGRES_SSLMODE=require \
+              STORAGE_ACCOUNT_NAME="$STORAGE_ACCOUNT_NAME" \
+              STORAGE_CONTAINER="$RESOLVED_STORAGE_CONTAINER" \
+              CORS_ORIGINS="$RESOLVED_CORS_ORIGINS"
 
       - name: Deploy backend
         run: |
