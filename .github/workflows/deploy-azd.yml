@@ -62,3 +62,11 @@ jobs:
           azd env set AZURE_PRINCIPAL_ID "$AZURE_PRINCIPAL_ID"
           azd env set POSTGRES_ADMIN_PASSWORD "$POSTGRES_ADMIN_PASSWORD"
           azd ${{ inputs.action }} --no-prompt
+
+          if [ "${{ inputs.action }}" = "deploy" ]; then
+            eval "$(azd env get-values)"
+            az webapp config set \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "${API_HOSTNAME%%.*}" \
+              --startup-file "bash startup.sh"
+          fi
