@@ -108,8 +108,12 @@ jobs:
             az webapp create \
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
+              --name "$WEB_APP_NAME"
+
+            az webapp config set \
+              --resource-group "$RESOURCE_GROUP" \
               --name "$WEB_APP_NAME" \
-              --runtime "node:20LTS"
+              --linux-fx-version "NODE|20-lts"
           fi
 
       - name: Verify frontend app exists

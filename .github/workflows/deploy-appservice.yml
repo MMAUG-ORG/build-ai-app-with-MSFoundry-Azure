@@ -74,16 +74,24 @@ jobs:
             az webapp create \
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
+              --name "$API_APP_NAME"
+
+            az webapp config set \
+              --resource-group "$RESOURCE_GROUP" \
               --name "$API_APP_NAME" \
-              --runtime "PYTHON:3.11"
+              --linux-fx-version "PYTHON|3.11"
           fi
 
           if [ "${{ inputs.target }}" != "api" ] && ! az webapp show --resource-group "$RESOURCE_GROUP" --name "$WEB_APP_NAME" >/dev/null 2>&1; then
             az webapp create \
               --resource-group "$RESOURCE_GROUP" \
               --plan "$APP_SERVICE_PLAN" \
+              --name "$WEB_APP_NAME"
+
+            az webapp config set \
+              --resource-group "$RESOURCE_GROUP" \
               --name "$WEB_APP_NAME" \
-              --runtime "node:20LTS"
+              --linux-fx-version "NODE|20-lts"
           fi
 
       - name: Verify target web apps exist
